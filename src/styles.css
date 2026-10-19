@@ -177,7 +177,9 @@ main .banner { border-radius: var(--radius); margin-bottom: 1rem; }
 .fc .fc-col-header-cell-cushion, .fc .fc-daygrid-day-number { color: var(--ink); text-decoration: none; }
 .fc .fc-col-header-cell-cushion { font-weight: 600; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
 .fc .fc-event { cursor: pointer; border-radius: 5px; padding: 1px 3px; }
-.fc .fc-daygrid-dot-event .fc-event-title { font-weight: 500; }
+.fc .fc-daygrid-dot-event { color: var(--ink); overflow: hidden; }
+.fc .fc-daygrid-dot-event .fc-event-title { font-weight: 500; overflow: hidden; text-overflow: ellipsis; }
+.fc .fc-daygrid-dot-event .fc-daygrid-event-dot { border-color: var(--accent); }
 .fc .fc-list-event-title a { color: var(--ink); text-decoration: none; }
 
 @media (max-width: 640px) {

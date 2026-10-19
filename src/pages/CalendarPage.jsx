@@ -91,6 +91,10 @@ export default function CalendarPage() {
           buttonText={{ today: 'Today', month: 'Month', week: 'Week', list: 'List' }}
           height="auto"
           dayMaxEvents={3}
+          // Late-night events (e.g. 9 PM – 3 AM) stay on the day they start
+          nextDayThreshold="06:00:00"
+          // Keep each event inside its own day box in month view
+          eventDisplay="list-item"
           nowIndicator
           events={fetchEvents}
           editable={canEdit}
