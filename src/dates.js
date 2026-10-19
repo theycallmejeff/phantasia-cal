@@ -42,6 +42,7 @@ export function rowToCalendarEvent(row) {
     title: row.title,
     backgroundColor: row.color || undefined,
     borderColor: row.color || undefined,
+    textColor: row.color ? readableText(row.color) : undefined,
     extendedProps: { row },
   };
   if (row.all_day) {
@@ -70,4 +71,18 @@ export function formatRange(row) {
   if (!end) return s;
   if (toDateInput(end) === toDateInput(start)) return `${s} – ${end.toLocaleTimeString(undefined, timeOpts)}`;
   return `${s} – ${end.toLocaleDateString(undefined, dateOpts)}, ${end.toLocaleTimeString(undefined, timeOpts)}`;
+}
+
+/** Black text on light event colors (yellow, peach), white on dark ones. */
+export function readableText(hex) {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex || '');
+  if (!m) return undefined;
+  const n = parseInt(m[1], 16);
+  const lin = (c) => {
+    c /= 255;
+    return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+  };
+  const L = 0.2126 * lin((n >> 16) & 255) + 0.7152 * lin((n >> 8) & 255) + 0.0722 * lin(n & 255);
+  // pick whichever of black or white contrasts more (crossover at L ≈ 0.18)
+  return (L + 0.05) / 0.05 > 1.05 / (L + 0.05) ? '#1a1214' : '#ffffff';
 }

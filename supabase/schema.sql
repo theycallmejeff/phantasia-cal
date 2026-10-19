@@ -76,13 +76,13 @@ language plpgsql
 as $$
 begin
   if tg_op = 'INSERT' then
-    new.created_by := auth.uid();
+    new.created_by := coalesce(auth.uid(), new.created_by);  -- SQL editor can set an author
     new.created_at := now();
   else
     new.created_by := old.created_by;   -- can't reassign authorship
     new.created_at := old.created_at;
   end if;
-  new.updated_by := auth.uid();
+  new.updated_by := coalesce(auth.uid(), new.updated_by, new.created_by);
   new.updated_at := now();
   return new;
 end;

@@ -1,33 +1,41 @@
+/* Palette from the Krewe of Phantasia flyers: hot pink → peach → sunshine yellow, deep rose logo */
 :root {
-  --bg: #f6f3ee;
+  --pink: #ff66c4;
+  --peach: #ffa48a;
+  --yellow: #ffde59;
+  --rose: #a8404f;
+  --flyer-gradient: linear-gradient(90deg, var(--pink) 0%, var(--peach) 50%, var(--yellow) 100%);
+  --flyer-ink: #1a1214;
+
+  --bg: #fff7f2;
   --surface: #ffffff;
-  --ink: #1f2421;
-  --muted: #6b716d;
-  --line: #e4ded4;
-  --accent: #2f6f5e;
+  --ink: #1a1214;
+  --muted: #6e5a60;
+  --line: #f1dfe0;
+  --accent: #b03a5b;
   --accent-ink: #ffffff;
-  --accent-soft: #e3efe9;
-  --danger: #b23a2b;
-  --warn-bg: #fbeee0;
-  --warn-ink: #8a4a12;
+  --accent-soft: #ffe3f1;
+  --danger: #c0392b;
+  --warn-bg: #fff1c9;
+  --warn-ink: #7a4b00;
   --radius: 10px;
-  --shadow: 0 1px 2px rgba(31, 36, 33, 0.06), 0 8px 24px rgba(31, 36, 33, 0.06);
+  --shadow: 0 1px 2px rgba(26, 18, 20, 0.06), 0 8px 24px rgba(176, 58, 91, 0.08);
   color-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #151816;
-    --surface: #1e2220;
-    --ink: #ece9e3;
-    --muted: #9aa19c;
-    --line: #2f3531;
-    --accent: #5fb59b;
-    --accent-ink: #0f1311;
-    --accent-soft: #23332d;
-    --danger: #e0695a;
-    --warn-bg: #3a2a1a;
-    --warn-ink: #f0c08c;
+    --bg: #1a1215;
+    --surface: #241a1e;
+    --ink: #f7ecef;
+    --muted: #b39ca4;
+    --line: #3a2a30;
+    --accent: #ff7ac8;
+    --accent-ink: #1a1214;
+    --accent-soft: #3d2232;
+    --danger: #ff8a7a;
+    --warn-bg: #3b3016;
+    --warn-ink: #ffe08a;
     --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.3);
     color-scheme: dark;
   }
@@ -42,7 +50,7 @@ body {
   font: 15px/1.5 Inter, system-ui, -apple-system, sans-serif;
 }
 
-h1, h2 { font-family: Fraunces, Georgia, serif; font-weight: 600; letter-spacing: -0.01em; }
+h1, h2 { font-family: 'League Spartan', Inter, sans-serif; font-weight: 700; letter-spacing: -0.01em; }
 h1 { font-size: 1.8rem; margin: 0 0 0.5rem; }
 h2 { font-size: 1.25rem; margin: 0 0 0.75rem; }
 a { color: var(--accent); }
@@ -57,17 +65,21 @@ main { width: 100%; max-width: 1180px; margin: 0 auto; padding: 1.5rem 16px 3rem
 .site-header {
   display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
   padding: 0.85rem max(16px, calc((100vw - 1180px) / 2 + 16px));
-  background: var(--surface); border-bottom: 1px solid var(--line);
+  background: var(--flyer-gradient); color: var(--flyer-ink);
 }
 .brand {
   display: flex; align-items: center; gap: 0.5rem;
-  font-family: Fraunces, Georgia, serif; font-size: 1.2rem; font-weight: 600;
-  color: var(--ink); text-decoration: none;
+  font-family: 'League Spartan', Inter, sans-serif; font-size: 1.35rem; font-weight: 700;
+  color: var(--flyer-ink); text-decoration: none;
 }
-.brand-mark { color: var(--accent); font-size: 1.4rem; }
+.brand-mark { color: var(--rose); font-size: 1.4rem; }
 .site-header nav { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
-.site-header nav a:not(.btn) { color: var(--muted); text-decoration: none; font-weight: 500; }
-.site-header nav a.active { color: var(--ink); }
+.site-header nav a:not(.btn) { color: rgba(26, 18, 20, 0.7); text-decoration: none; font-weight: 600; }
+.site-header nav a.active, .site-header nav a:not(.btn):hover { color: var(--flyer-ink); }
+.site-header .btn-primary { background: var(--flyer-ink); color: #fff; }
+.site-header .btn-ghost { border-color: rgba(26, 18, 20, 0.3); color: var(--flyer-ink); }
+.site-header .btn-ghost:hover:not(:disabled) { background: rgba(255, 255, 255, 0.35); }
+.site-header .role-pill { background: rgba(255, 255, 255, 0.55); color: var(--rose); }
 .who { display: flex; align-items: center; gap: 0.4rem; font-weight: 500; max-width: 220px; }
 
 .role-pill {
@@ -133,8 +145,12 @@ main .banner { border-radius: var(--radius); margin-bottom: 1rem; }
 .toolbar-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap; }
 .toolbar-row p { margin: 0; }
 .calendar-shell {
+  position: relative; overflow: hidden;
   background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
-  padding: 1rem; box-shadow: var(--shadow);
+  padding: calc(1rem + 6px) 1rem 1rem; box-shadow: var(--shadow);
+}
+.calendar-shell::before {
+  content: ''; position: absolute; inset: 0 0 auto 0; height: 6px; background: var(--flyer-gradient);
 }
 
 .fc {
@@ -145,6 +161,7 @@ main .banner { border-radius: var(--radius); margin-bottom: 1rem; }
   --fc-today-bg-color: var(--accent-soft);
   --fc-event-bg-color: var(--accent);
   --fc-event-border-color: var(--accent);
+  --fc-event-text-color: var(--accent-ink);
   --fc-button-bg-color: var(--surface);
   --fc-button-border-color: var(--line);
   --fc-button-text-color: var(--ink);
@@ -154,7 +171,7 @@ main .banner { border-radius: var(--radius); margin-bottom: 1rem; }
   --fc-button-active-border-color: var(--accent);
   --fc-now-indicator-color: var(--danger);
 }
-.fc .fc-toolbar-title { font-family: Fraunces, Georgia, serif; font-size: 1.4rem; }
+.fc .fc-toolbar-title { font-family: 'League Spartan', Inter, sans-serif; font-weight: 700; font-size: 1.5rem; }
 .fc .fc-button { font-weight: 600; text-transform: none; box-shadow: none !important; }
 .fc .fc-button-active { color: var(--accent-ink) !important; }
 .fc .fc-col-header-cell-cushion, .fc .fc-daygrid-day-number { color: var(--ink); text-decoration: none; }
@@ -186,7 +203,7 @@ main .banner { border-radius: var(--radius); margin-bottom: 1rem; }
 }
 .modal-actions { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem; }
 .spacer { flex: 1; }
-.event-swatch { width: 40px; height: 6px; border-radius: 3px; margin-bottom: 0.9rem; }
+.event-swatch { width: 56px; height: 6px; border-radius: 3px; margin-bottom: 0.9rem; }
 .event-view h2 { font-size: 1.5rem; margin-bottom: 0.25rem; }
 .event-location { margin: 0.75rem 0 0; }
 .event-description { white-space: pre-wrap; margin: 0.75rem 0 0; }

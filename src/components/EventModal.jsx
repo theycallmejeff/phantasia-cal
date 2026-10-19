@@ -11,12 +11,13 @@ import {
 
 export const COLORS = [
   { value: '', label: 'Default' },
-  { value: '#2f6f5e', label: 'Green' },
-  { value: '#b4532a', label: 'Rust' },
-  { value: '#3b5bab', label: 'Blue' },
-  { value: '#8a4fa3', label: 'Plum' },
-  { value: '#b08a1e', label: 'Gold' },
-  { value: '#5c6670', label: 'Slate' },
+  { value: '#ff66c4', label: 'Pink' },
+  { value: '#b03a5b', label: 'Rose' },
+  { value: '#ff8a73', label: 'Coral' },
+  { value: '#ffb58a', label: 'Peach' },
+  { value: '#ffde59', label: 'Sunshine' },
+  { value: '#7a2e6b', label: 'Plum' },
+  { value: '#2a1d22', label: 'Ink' },
 ];
 
 function blankForm(initial) {
@@ -135,7 +136,7 @@ export default function EventModal({ mode: initialMode, row, initial, onClose, o
             <h2>{row.title}</h2>
             <p className="muted">{formatRange(row)}</p>
             {row.location && <p className="event-location">📍 {row.location}</p>}
-            {row.description && <p className="event-description">{row.description}</p>}
+            {row.description && <p className="event-description">{linkify(row.description)}</p>}
             {error && <p className="error">{error}</p>}
             {canEdit && (
               <div className="modal-actions">
@@ -241,5 +242,18 @@ export default function EventModal({ mode: initialMode, row, initial, onClose, o
         )}
       </div>
     </div>
+  );
+}
+
+// Turn bare URLs in a description into links (ticket and registration pages).
+function linkify(text) {
+  return text.split(/(https?:\/\/[^\s]+)/g).map((part, i) =>
+    /^https?:\/\//.test(part) ? (
+      <a key={i} href={part} target="_blank" rel="noopener noreferrer">
+        {part}
+      </a>
+    ) : (
+      part
+    )
   );
 }
