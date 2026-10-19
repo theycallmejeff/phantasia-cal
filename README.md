@@ -21,14 +21,14 @@ A free, shared events calendar. Anyone can view it; people request an account, a
 3. Open **Authentication → URL Configuration**:
    - **Site URL:** `https://<your-github-username>.github.io/<repo-name>/`
    - **Redirect URLs:** add the same URL, plus `http://localhost:5173/` for local testing.
-4. Open **Project Settings → API** and copy the **Project URL** and the **anon public** key.
+4. Copy two values: the **Project URL** (click **Connect** at the top of the dashboard) and the **publishable** key (or legacy **anon** key) from **Project Settings → API Keys**. Never use the secret / service_role key.
 
 > **Email limits:** Supabase's built-in email sender is limited to a few emails per hour, which is fine for a small group. If you'd rather skip confirmation emails, turn off **Authentication → Sign In / Providers → Email → Confirm email**. Admin approval still gates who can post, so this is safe.
 
 ### 2. Configure GitHub
 1. In the repo: **Settings → Secrets and variables → Actions → New repository secret**. Add:
    - `VITE_SUPABASE_URL` — the Project URL
-   - `VITE_SUPABASE_ANON_KEY` — the anon public key
+   - `VITE_SUPABASE_ANON_KEY` — the publishable (or legacy anon) key
 2. **Settings → Pages → Build and deployment → Source:** choose **GitHub Actions**.
 3. Push to `main` (or run the workflow from the **Actions** tab). The site appears at `https://<username>.github.io/<repo-name>/`.
 
