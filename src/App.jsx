@@ -4,6 +4,7 @@ import CalendarPage from './pages/CalendarPage';
 import LoginPage from './pages/LoginPage';
 import RequestAccountPage from './pages/RequestAccountPage';
 import AdminPage from './pages/AdminPage';
+import FlyerPage from './pages/FlyerPage';
 import SetPasswordModal from './components/SetPasswordModal';
 
 function Header() {
@@ -18,6 +19,7 @@ function Header() {
       </Link>
       <nav>
         <NavLink to="/" end>Calendar</NavLink>
+        {isAdmin && <NavLink to="/flyer">Flyer</NavLink>}
         {isAdmin && <NavLink to="/admin">Admin</NavLink>}
         {user ? (
           <>
@@ -81,6 +83,14 @@ export default function App() {
             element={
               <RequireAdmin>
                 <AdminPage />
+              </RequireAdmin>
+            }
+          />
+          <Route
+            path="/flyer"
+            element={
+              <RequireAdmin>
+                <FlyerPage />
               </RequireAdmin>
             }
           />

@@ -224,3 +224,21 @@ main .banner { border-radius: var(--radius); margin-bottom: 1rem; }
 }
 .person-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
 .reason { margin: 0.4rem 0 0; font-style: italic; color: var(--muted); }
+
+/* ---------- Flyer ---------- */
+.flyer-layout { display: grid; grid-template-columns: minmax(280px, 360px) 1fr; gap: 1.5rem; align-items: start; margin-top: 1rem; }
+.flyer-controls { position: sticky; top: 1rem; padding: 1.25rem; }
+.flyer-events { border: 0; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.5rem; max-height: 46vh; overflow-y: auto; }
+.flyer-events legend { font-weight: 600; font-size: 0.92rem; margin-bottom: 0.4rem; padding: 0; }
+.form label.flyer-event { align-items: flex-start; font-weight: 400; }
+.flyer-event input { margin-top: 0.25rem; }
+.flyer-event span { display: flex; flex-direction: column; font-size: 0.88rem; line-height: 1.35; }
+.flyer-actions { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; }
+.flyer-pages { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; }
+.flyer-thumb { margin: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); }
+.flyer-thumb img { display: block; width: 100%; height: auto; aspect-ratio: 1080 / 1350; }
+.flyer-thumb figcaption { display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 0.75rem; font-weight: 600; font-size: 0.9rem; }
+@media (max-width: 820px) {
+  .flyer-layout { grid-template-columns: 1fr; }
+  .flyer-controls { position: static; }
+}
