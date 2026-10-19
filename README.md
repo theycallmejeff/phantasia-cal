@@ -1,4 +1,4 @@
-# Community Calendar
+# Phantasia Community Calendar
 
 A free, shared events calendar. Anyone can view it; people request an account, an admin approves them, and approved members can add, edit, and drag-to-reschedule events.
 

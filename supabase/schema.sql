@@ -1,5 +1,5 @@
 -- =====================================================================
--- Community Calendar — Supabase schema
+-- Phantasia Community Calendar — Supabase schema
 -- Run this whole file once in Supabase: Dashboard → SQL Editor → New query
 -- =====================================================================
 

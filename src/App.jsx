@@ -14,7 +14,7 @@ function Header() {
     <header className="site-header">
       <Link to="/" className="brand">
         <span className="brand-mark" aria-hidden="true">◷</span>
-        Community Calendar
+        Phantasia Community Calendar
       </Link>
       <nav>
         <NavLink to="/" end>Calendar</NavLink>
