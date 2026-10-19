@@ -26,7 +26,7 @@ export default function CalendarPage() {
       .or(`ends_at.gte.${start},and(ends_at.is.null,starts_at.gte.${start})`)
       .order('starts_at');
     if (err) {
-      setError(err.message);
+      setError(friendlyError(err));
       throw err;
     }
     setError('');
@@ -54,7 +54,7 @@ export default function CalendarPage() {
       .eq('id', row.id);
     if (err) {
       revert();
-      setError(err.message);
+      setError(friendlyError(err));
     } else {
       refetch();
     }
@@ -122,6 +122,18 @@ export default function CalendarPage() {
       )}
     </div>
   );
+}
+
+// An HTML page instead of JSON means VITE_SUPABASE_URL points somewhere other than Supabase.
+function friendlyError(err) {
+  const msg = String(err?.message || err || '');
+  if (msg.trim().startsWith('<') || /404|not found/i.test(msg)) {
+    return (
+      "Couldn't reach the events database. Check that the VITE_SUPABASE_URL secret is your " +
+      'Supabase project URL (like https://abcd1234.supabase.co), then re-run the deploy.'
+    );
+  }
+  return msg;
 }
 
 function roundedNow() {
