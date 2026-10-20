@@ -1,4 +1,6 @@
-import { Routes, Route, Link, NavLink, Navigate, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Routes, Route, Link, NavLink, Navigate, useNavigate, useLocation } from 'react-router-dom';
+import { supabase } from './supabase';
 import { useAuth } from './auth';
 import CalendarPage from './pages/CalendarPage';
 import LoginPage from './pages/LoginPage';
@@ -7,9 +9,31 @@ import AdminPage from './pages/AdminPage';
 import FlyerPage from './pages/FlyerPage';
 import SetPasswordModal from './components/SetPasswordModal';
 
+/** Number of account requests waiting, for the badge on the Admin link. */
+function usePendingCount(enabled) {
+  const [count, setCount] = useState(0);
+  const location = useLocation();
+  useEffect(() => {
+    if (!enabled) return;
+    let alive = true;
+    const load = () =>
+      supabase.rpc('pending_request_count').then(({ data, error }) => {
+        if (alive && !error && typeof data === 'number') setCount(data);
+      });
+    load();
+    const timer = setInterval(load, 60 * 1000);
+    return () => {
+      alive = false;
+      clearInterval(timer);
+    };
+  }, [enabled, location.pathname]); // refresh when moving between pages, e.g. after approving
+  return enabled ? count : 0;
+}
+
 function Header() {
   const { user, profile, isAdmin, signOut } = useAuth();
   const navigate = useNavigate();
+  const pending = usePendingCount(isAdmin);
 
   return (
     <header className="site-header">
@@ -20,7 +44,12 @@ function Header() {
       <nav>
         <NavLink to="/" end>Calendar</NavLink>
         {isAdmin && <NavLink to="/flyer">Flyer</NavLink>}
-        {isAdmin && <NavLink to="/admin">Admin</NavLink>}
+        {isAdmin && (
+          <NavLink to="/admin" title={pending ? `${pending} account request${pending === 1 ? '' : 's'} waiting` : undefined}>
+            Admin
+            {pending > 0 && <span className="nav-badge">{pending}</span>}
+          </NavLink>
+        )}
         {user ? (
           <>
             <span className="who" title={profile?.email}>

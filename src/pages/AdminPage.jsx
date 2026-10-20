@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '../supabase';
 import { useAuth } from '../auth';
+import RecentChanges from '../components/RecentChanges';
 
 const fmt = (iso) => new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
 
@@ -38,6 +39,7 @@ export default function AdminPage() {
   const pending = profiles.filter((p) => p.role === 'pending');
   const members = profiles.filter((p) => p.role === 'editor' || p.role === 'admin');
   const rejected = profiles.filter((p) => p.role === 'rejected');
+  const names = Object.fromEntries(profiles.map((p) => [p.id, p.full_name || p.email.split('@')[0]]));
 
   if (loading) return <p className="muted pad">Loading…</p>;
 
@@ -134,6 +136,7 @@ export default function AdminPage() {
           </ul>
         </section>
       )}
+      <RecentChanges names={names} />
     </div>
   );
 }

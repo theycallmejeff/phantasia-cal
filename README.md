@@ -45,6 +45,14 @@ A free, shared events calendar. Anyone can view it; people request an account, a
 - **Add to calendar:** every event popup has *Share / Copy link*, *Google Calendar* and *Apple / Outlook* (.ics) buttons.
 - **Subscribe:** the deploy workflow publishes `calendar.ics` next to the site and rebuilds it every 3 hours (`scripts/build-ics.mjs`), so subscribers see new events within a few hours (calendar apps also refresh on their own schedule).
 
+## Editor & admin tools
+Run `supabase/migrations/002_editor_tools.sql` once in the Supabase SQL Editor to turn these on:
+- **Repeating events:** choose *Every week / Every 2 weeks / Every month (same weekday)* and an end date when adding an event. Deleting one asks *Only this date* or *This and later dates*.
+- **Duplicate:** copies an event into a new one; change the date and save.
+- **Added / edited by:** editors see who added and last edited each event.
+- **Recent changes:** the Admin page lists every add, edit and delete, with *Remove*, *Restore* and *Undo edit*.
+- **Request alerts:** a count badge on the Admin link, and the *Account request alert* workflow checks hourly and opens a GitHub issue that @mentions you (GitHub emails you). It closes itself once the queue is empty.
+
 ## Local development
 
 ```bash
