@@ -325,7 +325,9 @@ export default function EventModal({ mode: initialMode, row, initial, onClose, o
               Location <span className="muted">(optional)</span>
               <LocationInput
                 value={form.location}
-                onChange={(location) => setForm((f) => ({ ...f, location }))}
+                onChange={(next) =>
+                  setForm((f) => ({ ...f, location: typeof next === 'function' ? next(f.location) : next }))
+                }
               />
             </label>
 

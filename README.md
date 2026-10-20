@@ -60,6 +60,7 @@ The event **Location** field suggests businesses and addresses as you type (bias
 2. **APIs & Services → Library:** enable **Places API (New)**. (Maps JavaScript API isn't needed.)
 3. **Credentials → Create credentials → API key.** Edit the key: *Application restrictions:* **None** (Google is called from Supabase's servers, not browsers; the key never leaves Supabase). *API restrictions:* **Places API (New)** only.
 4. Open `supabase/migrations/003_places_search.sql`, replace `PASTE_YOUR_GOOGLE_KEY_HERE` with the key, and run it in the Supabase SQL Editor. Re-run it to change the key. To change the limits, edit the `values (9000, 1000)` line and re-run.
+5. Run `supabase/migrations/004_place_street.sql` too. Picked places are saved as name + street, adding the city only when it isn't New Orleans ("BJ's Lounge, 4301 Burgundy Street", "Drago's, 3232 North Arnoult Road, Metairie"). Each lookup counts toward the same limits.
 
 ## Local development
 

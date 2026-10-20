@@ -10,12 +10,29 @@ import { supabase } from '../supabase';
 const MIN_CHARS = 3;
 const DEBOUNCE_MS = 300;
 
-/** "BJ's Lounge" + "4301 Burgundy Street, New Orleans, LA, USA" → "BJ's Lounge, 4301 Burgundy Street, New Orleans, LA" */
-export function formatPrediction(main, secondary) {
-  const rest = (secondary || '').replace(/,\s*USA$/, '');
-  if (!rest) return main.replace(/,\s*USA$/, '');
-  // an address search: main text is already the street, so don't repeat it
-  return rest.startsWith(main) ? rest : `${main}, ${rest}`;
+const HOME_CITY = /^new orleans$/i;
+
+/**
+ * Location text for a picked suggestion: name, street, and the city only when it isn't New Orleans.
+ *   "BJ's Lounge, 4301 Burgundy Street"
+ *   "Drago's, 3232 North Arnoult Road, Metairie"
+ *   "4301 Burgundy Street"            (an address search: no separate name)
+ * `details` ({ street, city }) comes from place_street(); without it we use the suggestion text.
+ */
+export function buildLocation(item, details) {
+  const parts = (item.secondary || '').replace(/,\s*USA$/, '').split(/,\s*/).filter(Boolean);
+  // Fallback from the suggestion text: "4301 Burgundy Street, New Orleans, LA" or "New Orleans, LA"
+  const fallbackStreet = /^\d/.test(parts[0] || '') ? parts[0] : null;
+  const fallbackCity = fallbackStreet ? parts[1] : parts[0];
+  const isAddress = /^\d/.test(item.main);
+
+  const street = details?.street || (isAddress ? item.main : fallbackStreet);
+  const city = details?.city || fallbackCity || '';
+  const showCity = city && !HOME_CITY.test(city.trim());
+
+  const out = isAddress ? [street] : [item.main, street];
+  if (showCity) out.push(city);
+  return out.filter(Boolean).join(', ');
 }
 
 const PAUSED = {
@@ -76,10 +93,18 @@ export default function LocationInput({ value, onChange }) {
     timerRef.current = setTimeout(() => search(text.trim()), DEBOUNCE_MS);
   }
 
-  function choose(item) {
-    onChange(formatPrediction(item.main, item.secondary));
+  async function choose(item) {
+    const quick = buildLocation(item, null);
+    onChange(quick); // fill in right away from the suggestion text
     setOpen(false);
     setSuggestions([]);
+    // then fetch the exact street (and city) so a street address is always shown
+    const { data, error } = await supabase.rpc('place_street', { place_id: item.id });
+    if (error || !data || (!data.street && !data.city)) return; // keep the quick version
+    if (data.limited) setStatus(data.limited);
+    const exact = buildLocation(item, data);
+    // only replace it if the editor hasn't started changing the text meanwhile
+    onChange((current) => (current === quick ? exact : current));
   }
 
   function handleKeyDown(e) {
