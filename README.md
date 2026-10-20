@@ -50,5 +50,5 @@ npm run dev             # http://localhost:5173
 
 ## Notes
 - The anon key is meant to be public; the database rules decide what each user can do. Never put the `service_role` key in this project.
-- Supabase pauses free projects after about a week with no activity. Visiting the site wakes it, or you can restore it from the Supabase dashboard.
+- Supabase pauses free projects after 7 days without database activity. The **Keep Supabase awake** workflow (`.github/workflows/keepalive.yml`) reads one event every Monday and Thursday to prevent that. If it ever fails, GitHub emails you; resume the project from the Supabase dashboard. GitHub turns off scheduled workflows in repos with no commits for 60 days and emails a warning first; click the link in that email (or the Actions tab) to keep it on.
 - Routes use `#/` URLs (e.g. `/#/admin`) because GitHub Pages can't rewrite paths.
