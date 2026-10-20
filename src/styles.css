@@ -301,3 +301,10 @@ main .banner { border-radius: var(--radius); margin-bottom: 1rem; }
   border-top: 1px solid var(--line); margin-top: 0.2rem;
 }
 .event-location a { color: inherit; text-decoration: underline; text-decoration-color: var(--accent); text-underline-offset: 3px; }
+
+.location-note { display: block; margin-top: 0.3rem; font-size: 0.8rem; font-weight: 400; color: var(--warn-ink); }
+.usage-card { display: flex; flex-wrap: wrap; gap: 0.4rem 1.5rem; align-items: baseline; margin-top: 1rem; padding: 0.8rem 1rem;
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); font-size: 0.92rem; }
+.usage-card strong { font-weight: 600; }
+.usage-bar { flex: 1 1 160px; height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; align-self: center; }
+.usage-bar span { display: block; height: 100%; background: var(--flyer-gradient); }

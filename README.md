@@ -54,15 +54,12 @@ Run `supabase/migrations/002_editor_tools.sql` once in the Supabase SQL Editor t
 - **Request alerts:** a count badge on the Admin link, and the *Account request alert* workflow checks hourly and opens a GitHub issue that @mentions you (GitHub emails you). It closes itself once the queue is empty.
 
 ## Location autocomplete (Google Places, optional)
-With a key set, the event **Location** field suggests businesses and addresses as you type (biased to New Orleans). Without one, it's a normal text box. Event locations always link to Google Maps for directions (no key needed).
+The event **Location** field suggests businesses and addresses as you type (biased to New Orleans). The site asks your Supabase database, which calls Google with a key stored encrypted in Supabase Vault, and **stops at 9,000 searches a month and 1,000 a day** (Pacific time). Google includes 10,000 free searches a month, so this can't create charges. The Admin page shows this month's usage. Without setup, the field is a normal text box. Event locations always link to Google Maps for directions.
 
-1. Go to [console.cloud.google.com](https://console.cloud.google.com), create a project, and add a billing account. New accounts start on Google Cloud's **90-day Free Trial**; to keep suggestions working after it ends, upgrade the billing account to paid. Maps then includes 10,000 free autocomplete requests every month (about 5 are used per event added).
-2. **APIs & Services → Library:** enable **Maps JavaScript API** and **Places API (New)**.
-3. **APIs & Services → Credentials → Create credentials → API key.** Edit the key:
-   - *Application restrictions:* **Websites**, add `https://theycallmejeff.github.io/*` and `http://localhost:5173/*`
-   - *API restrictions:* restrict to **Maps JavaScript API** and **Places API (New)**
-4. **Watch spending:** add a $1 budget alert under *Billing → Budgets & alerts* (it emails you; it does not stop charges). Places API (New) only has per-minute rate limits, not a daily cap, and Free Trial accounts can't change quotas. Leave the Maps JavaScript API quotas at their defaults; the site never draws a map.
-5. Add the key as the repository secret `VITE_GOOGLE_MAPS_API_KEY`, then re-run the deploy workflow.
+1. In [console.cloud.google.com](https://console.cloud.google.com): a project with a **paid (pay-as-you-go) billing account** (the 90-day Free Trial stops working when it ends).
+2. **APIs & Services → Library:** enable **Places API (New)**. (Maps JavaScript API isn't needed.)
+3. **Credentials → Create credentials → API key.** Edit the key: *Application restrictions:* **None** (Google is called from Supabase's servers, not browsers; the key never leaves Supabase). *API restrictions:* **Places API (New)** only.
+4. Open `supabase/migrations/003_places_search.sql`, replace `PASTE_YOUR_GOOGLE_KEY_HERE` with the key, and run it in the Supabase SQL Editor. Re-run it to change the key. To change the limits, edit the `values (9000, 1000)` line and re-run.
 
 ## Local development
 

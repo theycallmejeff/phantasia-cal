@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '../supabase';
 import { useAuth } from '../auth';
 import RecentChanges from '../components/RecentChanges';
+import PlacesUsage from '../components/PlacesUsage';
 
 const fmt = (iso) => new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
 
@@ -136,6 +137,7 @@ export default function AdminPage() {
           </ul>
         </section>
       )}
+      <PlacesUsage />
       <RecentChanges names={names} />
     </div>
   );

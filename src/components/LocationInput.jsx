@@ -1,59 +1,34 @@
 import { useEffect, useId, useRef, useState } from 'react';
+import { supabase } from '../supabase';
 
-// Google Places (New) autocomplete for the event Location field.
-// Uses only autocomplete predictions (no Place Details call), so each search is one
-// "Autocomplete Request" — Google gives 10,000 free per month.
-// Without VITE_GOOGLE_MAPS_API_KEY this is a plain text box.
+// Address suggestions for the event Location field.
+// The browser asks our database (place_suggestions in supabase/migrations/003_places_search.sql),
+// which calls Google Places with a key kept in Supabase Vault and enforces a hard limit of
+// 9,000 searches a month and 1,000 a day — so Google's free 10,000/month is never exceeded.
+// If the database function isn't set up, this is a plain text box.
 
-const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-// Greater New Orleans (Metairie to Chalmette, Northshore edge); results nearby rank first
-const NEW_ORLEANS = { north: 30.4, south: 29.7, east: -89.7, west: -90.45 };
 const MIN_CHARS = 3;
 const DEBOUNCE_MS = 300;
-
-let placesPromise = null;
-
-/** Load the Maps JavaScript API once and return the Places library. */
-function loadPlaces() {
-  if (!API_KEY) return Promise.reject(new Error('No Google Maps key'));
-  if (placesPromise) return placesPromise;
-  placesPromise = new Promise((resolve, reject) => {
-    if (window.google?.maps?.importLibrary) {
-      resolve();
-      return;
-    }
-    window.__phantasiaMapsReady = () => resolve();
-    const s = document.createElement('script');
-    s.src =
-      `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(API_KEY)}` +
-      '&v=weekly&loading=async&callback=__phantasiaMapsReady';
-    s.async = true;
-    s.onerror = () => reject(new Error('Could not load Google Maps'));
-    document.head.appendChild(s);
-  })
-    .then(() => window.google.maps.importLibrary('places'))
-    .catch((e) => {
-      placesPromise = null; // allow a retry next time the field is used
-      throw e;
-    });
-  return placesPromise;
-}
 
 /** "BJ's Lounge" + "4301 Burgundy Street, New Orleans, LA, USA" → "BJ's Lounge, 4301 Burgundy Street, New Orleans, LA" */
 export function formatPrediction(main, secondary) {
   const rest = (secondary || '').replace(/,\s*USA$/, '');
-  if (!rest) return main;
+  if (!rest) return main.replace(/,\s*USA$/, '');
   // an address search: main text is already the street, so don't repeat it
   return rest.startsWith(main) ? rest : `${main}, ${rest}`;
 }
+
+const PAUSED = {
+  day: 'Address suggestions are paused until tomorrow (daily limit reached). Type the location instead.',
+  month: 'Address suggestions are paused until next month (monthly limit reached). Type the location instead.',
+  error: "Address suggestions aren't working right now. Type the location instead.",
+};
 
 export default function LocationInput({ value, onChange }) {
   const [suggestions, setSuggestions] = useState([]);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(-1);
-  const [unavailable, setUnavailable] = useState(!API_KEY);
-  const libRef = useRef(null);
-  const tokenRef = useRef(null);
+  const [status, setStatus] = useState('ready'); // ready | off | day | month | error
   const timerRef = useRef(null);
   const lastQuery = useRef('');
   const listId = useId();
@@ -61,42 +36,40 @@ export default function LocationInput({ value, onChange }) {
   useEffect(() => () => clearTimeout(timerRef.current), []);
 
   async function search(text) {
-    try {
-      const places = libRef.current || (libRef.current = await loadPlaces());
-      if (!tokenRef.current) tokenRef.current = new places.AutocompleteSessionToken();
-      lastQuery.current = text;
-      const { suggestions: found } = await places.AutocompleteSuggestion.fetchAutocompleteSuggestions({
-        input: text,
-        sessionToken: tokenRef.current,
-        locationBias: NEW_ORLEANS,
-        includedRegionCodes: ['us'],
-        region: 'us',
-      });
-      if (lastQuery.current !== text) return; // a newer search is on its way
-      const items = (found || [])
-        .map((s) => s.placePrediction)
-        .filter(Boolean)
-        .slice(0, 5)
-        .map((p) => ({
-          id: p.placeId,
-          main: p.mainText?.text || p.text?.text || '',
-          secondary: p.secondaryText?.text || '',
-        }));
-      setSuggestions(items);
-      setOpen(items.length > 0);
-      setActive(-1);
-    } catch (e) {
-      console.warn('Location suggestions unavailable:', e);
-      setUnavailable(true);
+    lastQuery.current = text;
+    const { data, error } = await supabase.rpc('place_suggestions', { q: text });
+    if (lastQuery.current !== text) return; // a newer search is on its way
+
+    if (error) {
+      // function not installed yet → quietly behave like a normal text box
+      const missing = error.code === 'PGRST202' || /place_suggestions/.test(error.message || '');
+      if (!missing) console.warn('Address suggestions:', error);
+      setStatus(missing ? 'off' : 'error');
       setOpen(false);
+      return;
     }
+    if (data?.limited) {
+      setStatus(data.limited);
+      setOpen(false);
+      return;
+    }
+    if (data?.error) {
+      console.warn('Address suggestions:', data); // e.g. Google rejected the key
+      setStatus(data.error === 'no_key' ? 'off' : 'error');
+      setOpen(false);
+      return;
+    }
+    const items = data?.suggestions || [];
+    setSuggestions(items);
+    setOpen(items.length > 0);
+    setActive(-1);
   }
 
   function handleChange(e) {
     const text = e.target.value;
     onChange(text);
     clearTimeout(timerRef.current);
-    if (unavailable || text.trim().length < MIN_CHARS) {
+    if (status !== 'ready' || text.trim().length < MIN_CHARS) {
       setOpen(false);
       return;
     }
@@ -107,7 +80,6 @@ export default function LocationInput({ value, onChange }) {
     onChange(formatPrediction(item.main, item.secondary));
     setOpen(false);
     setSuggestions([]);
-    tokenRef.current = null; // next search starts a new session
   }
 
   function handleKeyDown(e) {
@@ -135,7 +107,7 @@ export default function LocationInput({ value, onChange }) {
         onKeyDown={handleKeyDown}
         onBlur={() => setTimeout(() => setOpen(false), 150)}
         onFocus={() => suggestions.length && value.trim().length >= MIN_CHARS && setOpen(true)}
-        placeholder={unavailable ? '' : 'Start typing a place or address'}
+        placeholder={status === 'ready' ? 'Start typing a place or address' : ''}
         autoComplete="off"
         role="combobox"
         aria-expanded={open}
@@ -143,11 +115,12 @@ export default function LocationInput({ value, onChange }) {
         aria-autocomplete="list"
         aria-activedescendant={active >= 0 ? `${listId}-${active}` : undefined}
       />
+      {PAUSED[status] && <span className="location-note">{PAUSED[status]}</span>}
       {open && (
         <ul className="location-suggestions" id={listId} role="listbox">
           {suggestions.map((s, i) => (
             <li
-              key={s.id}
+              key={s.id || i}
               id={`${listId}-${i}`}
               role="option"
               aria-selected={i === active}
