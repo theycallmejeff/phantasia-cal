@@ -53,6 +53,17 @@ Run `supabase/migrations/002_editor_tools.sql` once in the Supabase SQL Editor t
 - **Recent changes:** the Admin page lists every add, edit and delete, with *Remove*, *Restore* and *Undo edit*.
 - **Request alerts:** a count badge on the Admin link, and the *Account request alert* workflow checks hourly and opens a GitHub issue that @mentions you (GitHub emails you). It closes itself once the queue is empty.
 
+## Location autocomplete (Google Places, optional)
+With a key set, the event **Location** field suggests businesses and addresses as you type (biased to New Orleans). Without one, it's a normal text box. Event locations always link to Google Maps for directions (no key needed).
+
+1. Go to [console.cloud.google.com](https://console.cloud.google.com), create a project, and add a billing account (required by Google; ~10,000 searches a month are free).
+2. **APIs & Services → Library:** enable **Maps JavaScript API** and **Places API (New)**.
+3. **APIs & Services → Credentials → Create credentials → API key.** Edit the key:
+   - *Application restrictions:* **Websites**, add `https://theycallmejeff.github.io/*` and `http://localhost:5173/*`
+   - *API restrictions:* restrict to **Maps JavaScript API** and **Places API (New)**
+4. **Cap usage so it can't bill you:** *APIs & Services → Places API (New) → Quotas*, set the autocomplete requests per day limit to about **300**. Optionally add a $1 budget alert under *Billing → Budgets & alerts*.
+5. Add the key as the repository secret `VITE_GOOGLE_MAPS_API_KEY`, then re-run the deploy workflow.
+
 ## Local development
 
 ```bash

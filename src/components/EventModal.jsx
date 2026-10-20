@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase, siteUrl } from '../supabase';
 import { buildIcs, googleCalendarUrl, eventUrl, icsFileName } from '../ics';
 import { useAuth } from '../auth';
+import LocationInput, { mapsUrl } from './LocationInput';
 import {
   toDateInput,
   toDateTimeInput,
@@ -216,7 +217,18 @@ export default function EventModal({ mode: initialMode, row, initial, onClose, o
             <div className="event-swatch" style={{ background: row.color || 'var(--accent)' }} />
             <h2>{row.title}</h2>
             <p className="muted">{formatRange(row)}</p>
-            {row.location && <p className="event-location">📍 {row.location}</p>}
+            {row.location && (
+              <p className="event-location">
+                📍{' '}
+                {/^online\b/i.test(row.location) ? (
+                  row.location
+                ) : (
+                  <a href={mapsUrl(row.location)} target="_blank" rel="noopener noreferrer" title="Open in Google Maps">
+                    {row.location}
+                  </a>
+                )}
+              </p>
+            )}
             {row.description && <p className="event-description">{linkify(row.description)}</p>}
             <ShareActions row={row} />
             {canEdit && <EditedBy row={row} />}
@@ -311,7 +323,10 @@ export default function EventModal({ mode: initialMode, row, initial, onClose, o
 
             <label>
               Location <span className="muted">(optional)</span>
-              <input value={form.location} onChange={set('location')} />
+              <LocationInput
+                value={form.location}
+                onChange={(location) => setForm((f) => ({ ...f, location }))}
+              />
             </label>
 
             <label>
