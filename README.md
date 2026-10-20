@@ -54,7 +54,7 @@ Run `supabase/migrations/002_editor_tools.sql` once in the Supabase SQL Editor t
 - **Request alerts:** a count badge on the Admin link, and the *Account request alert* workflow checks hourly and opens a GitHub issue that @mentions you (GitHub emails you). It closes itself once the queue is empty.
 
 ## Location autocomplete (Google Places, optional)
-The event **Location** field suggests businesses and addresses as you type (biased to New Orleans). The site asks your Supabase database, which calls Google with a key stored encrypted in Supabase Vault, and **stops at 9,000 searches a month and 1,000 a day** (Pacific time). Google includes 10,000 free searches a month, so this can't create charges. The Admin page shows this month's usage. Without setup, the field is a normal text box. Event locations always link to Google Maps for directions.
+The event **Location** field suggests businesses and addresses as you type (biased to New Orleans). The site asks your Supabase database, which calls Google with a key stored encrypted in Supabase Vault, and **stops at 9,000 searches a month and 1,000 a day** (Pacific time). Google includes 10,000 free searches a month, so this can't create charges. The Admin page shows this month's usage to the site owner only (`supabase/migrations/005_usage_owner_only.sql` sets which account). Without setup, the field is a normal text box. Event locations always link to Google Maps for directions.
 
 1. In [console.cloud.google.com](https://console.cloud.google.com): a project with a **paid (pay-as-you-go) billing account** (the 90-day Free Trial stops working when it ends).
 2. **APIs & Services → Library:** enable **Places API (New)**. (Maps JavaScript API isn't needed.)

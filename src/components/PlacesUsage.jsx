@@ -1,17 +1,24 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../supabase';
+import { useAuth } from '../auth';
+
+// Only this account sees the counts (the database enforces it too: 005_usage_owner_only.sql).
+const OWNER_EMAIL = 'theycallmejeff@gmail.com';
 
 /** "Address searches: 123 of 9,000 this month · 4 of 1,000 today" for admins. */
 export default function PlacesUsage() {
+  const { profile } = useAuth();
+  const isOwner = profile?.email?.toLowerCase() === OWNER_EMAIL;
   const [usage, setUsage] = useState(null);
 
   useEffect(() => {
+    if (!isOwner) return;
     supabase.rpc('places_usage').then(({ data, error }) => {
       if (!error && data) setUsage(data); // not installed yet → show nothing
     });
-  }, []);
+  }, [isOwner]);
 
-  if (!usage) return null;
+  if (!isOwner || !usage) return null;
   const n = (x) => x.toLocaleString();
   const pct = Math.min(100, Math.round((usage.month / usage.per_month) * 100));
   return (
