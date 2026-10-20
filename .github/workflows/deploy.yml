@@ -4,6 +4,9 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  schedule:
+    # Rebuild every 3 hours so the subscribable calendar.ics feed picks up new events
+    - cron: '41 */3 * * *'
 
 permissions:
   contents: read
@@ -12,11 +15,15 @@ permissions:
 
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false # queue instead of cancelling, so a scheduled run never kills a push deploy
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+      VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+      TZ: America/Chicago
     steps:
       - uses: actions/checkout@v4
 
@@ -24,16 +31,23 @@ jobs:
         with:
           node-version: 20
 
+      # The site lives at https://<owner>.github.io/<repo>/ (works for push, manual and scheduled runs)
+      - name: Work out site address
+        run: |
+          repo="${GITHUB_REPOSITORY#*/}"
+          owner="$(echo "${GITHUB_REPOSITORY_OWNER}" | tr '[:upper:]' '[:lower:]')"
+          echo "VITE_BASE=/${repo}/" >> "$GITHUB_ENV"
+          echo "VITE_SITE_URL=https://${owner}.github.io/${repo}/" >> "$GITHUB_ENV"
+          echo "SITE_URL=https://${owner}.github.io/${repo}/" >> "$GITHUB_ENV"
+
       # Switch to "npm ci" (and add "cache: npm" above) once package-lock.json is committed
       - run: npm install --no-audit --no-fund
 
-      - name: Build
+      - name: Build site
         run: npm run build
-        env:
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
-          # Site is served from https://<user>.github.io/<repo>/
-          VITE_BASE: /${{ github.event.repository.name }}/
+
+      - name: Build subscribable calendar feed (calendar.ics)
+        run: node scripts/build-ics.mjs dist/calendar.ics
 
       - uses: actions/upload-pages-artifact@v3
         with:

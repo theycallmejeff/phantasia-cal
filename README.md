@@ -40,6 +40,11 @@ A free, shared events calendar. Anyone can view it; people request an account, a
    ```
 3. Sign in. You'll see the **Admin** link, where new requests show up for approval.
 
+## Sharing & subscribing
+- **Event links:** clicking an event changes the address to `/#/event/<id>`; anyone opening that link lands on the event.
+- **Add to calendar:** every event popup has *Share / Copy link*, *Google Calendar* and *Apple / Outlook* (.ics) buttons.
+- **Subscribe:** the deploy workflow publishes `calendar.ics` next to the site and rebuilds it every 3 hours (`scripts/build-ics.mjs`), so subscribers see new events within a few hours (calendar apps also refresh on their own schedule).
+
 ## Local development
 
 ```bash

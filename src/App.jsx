@@ -76,6 +76,7 @@ export default function App() {
       <main>
         <Routes>
           <Route path="/" element={<CalendarPage />} />
+          <Route path="/event/:id" element={<CalendarPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/request" element={<RequestAccountPage />} />
           <Route

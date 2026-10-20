@@ -1,4 +1,5 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
@@ -8,12 +9,51 @@ import { supabase } from '../supabase';
 import { useAuth } from '../auth';
 import { rowToCalendarEvent, addDays } from '../dates';
 import EventModal from '../components/EventModal';
+import SubscribeModal from '../components/SubscribeModal';
 
 export default function CalendarPage() {
   const { canEdit } = useAuth();
   const calRef = useRef(null);
   const [modal, setModal] = useState(null);
+  const [showSubscribe, setShowSubscribe] = useState(false);
   const [error, setError] = useState('');
+  const navigate = useNavigate();
+  const { id: linkedId } = useParams(); // set on /#/event/<id>
+  const modalRef = useRef(modal);
+  modalRef.current = modal;
+
+  // Opening a shared event link: load the event, jump the calendar to its date, show it.
+  useEffect(() => {
+    if (!linkedId) {
+      if (modalRef.current?.mode === 'view') setModal(null);
+      return;
+    }
+    if (modalRef.current?.row?.id === linkedId) return; // already open (clicked on the calendar)
+    let cancelled = false;
+    supabase
+      .from('events')
+      .select('*')
+      .eq('id', linkedId)
+      .maybeSingle()
+      .then(({ data, error: err }) => {
+        if (cancelled) return;
+        if (err || !data) {
+          setError("That event couldn't be found. It may have been deleted.");
+          navigate('/', { replace: true });
+          return;
+        }
+        calRef.current?.getApi().gotoDate(data.starts_at);
+        setModal({ mode: 'view', row: data });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [linkedId, navigate]);
+
+  const closeModal = () => {
+    setModal(null);
+    if (linkedId) navigate('/');
+  };
 
   // FullCalendar asks for events whenever the visible range changes.
   const fetchEvents = useCallback(async (info) => {
@@ -66,14 +106,19 @@ export default function CalendarPage() {
         <p className="muted">
           {canEdit ? 'Click a day to add an event, or drag events to move them.' : 'Click an event for details.'}
         </p>
-        {canEdit && (
-          <button
-            className="btn btn-primary"
-            onClick={() => setModal({ mode: 'create', initial: { start: roundedNow(), allDay: false } })}
-          >
-            + Add event
+        <div className="toolbar-actions">
+          <button className="btn btn-ghost" onClick={() => setShowSubscribe(true)}>
+            Subscribe
           </button>
-        )}
+          {canEdit && (
+            <button
+              className="btn btn-primary"
+              onClick={() => setModal({ mode: 'create', initial: { start: roundedNow(), allDay: false } })}
+            >
+              + Add event
+            </button>
+          )}
+        </div>
       </div>
 
       {error && <div className="banner banner-warn">{error}</div>}
@@ -102,7 +147,9 @@ export default function CalendarPage() {
           }}
           eventClick={(info) => {
             info.jsEvent.preventDefault();
-            setModal({ mode: 'view', row: info.event.extendedProps.row });
+            const row = info.event.extendedProps.row;
+            setModal({ mode: 'view', row });
+            navigate(`/event/${row.id}`); // address bar now holds a shareable link
           }}
           eventDrop={persistMove}
           eventResize={persistMove}
@@ -113,13 +160,15 @@ export default function CalendarPage() {
         <EventModal
           key={modal.row?.id || 'new'}
           {...modal}
-          onClose={() => setModal(null)}
+          onClose={closeModal}
           onSaved={() => {
-            setModal(null);
+            closeModal();
             refetch();
           }}
         />
       )}
+
+      {showSubscribe && <SubscribeModal onClose={() => setShowSubscribe(false)} />}
     </div>
   );
 }

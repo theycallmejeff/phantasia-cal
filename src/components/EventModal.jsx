@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { supabase } from '../supabase';
+import { supabase, siteUrl } from '../supabase';
+import { buildIcs, googleCalendarUrl, eventUrl, icsFileName } from '../ics';
 import { useAuth } from '../auth';
 import {
   toDateInput,
@@ -137,6 +138,7 @@ export default function EventModal({ mode: initialMode, row, initial, onClose, o
             <p className="muted">{formatRange(row)}</p>
             {row.location && <p className="event-location">📍 {row.location}</p>}
             {row.description && <p className="event-description">{linkify(row.description)}</p>}
+            <ShareActions row={row} />
             {error && <p className="error">{error}</p>}
             {canEdit && (
               <div className="modal-actions">
@@ -255,5 +257,61 @@ function linkify(text) {
     ) : (
       part
     )
+  );
+}
+
+/** Share link + add-to-calendar buttons shown to every visitor. */
+function ShareActions({ row }) {
+  const [copied, setCopied] = useState(false);
+  const site = siteUrl();
+  const link = eventUrl(site, row.id);
+
+  async function share() {
+    // Phones get the native share sheet (Messages, Instagram, etc.); computers copy the link.
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: row.title, text: row.location || row.title, url: link });
+        return;
+      } catch (e) {
+        if (e?.name === 'AbortError') return; // they closed the share sheet
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(link);
+    } catch {
+      window.prompt('Copy this link:', link);
+      return;
+    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  function downloadIcs() {
+    const blob = new Blob([buildIcs([row], { siteUrl: site })], { type: 'text/calendar;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = icsFileName(row);
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  return (
+    <div className="share-actions">
+      <button type="button" className="btn btn-ghost" onClick={share}>
+        {copied ? '✓ Link copied' : navigator.share ? 'Share' : 'Copy link'}
+      </button>
+      <a
+        className="btn btn-ghost"
+        href={googleCalendarUrl(row, site)}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Google Calendar
+      </a>
+      <button type="button" className="btn btn-ghost" onClick={downloadIcs}>
+        Apple / Outlook
+      </button>
+    </div>
   );
 }
