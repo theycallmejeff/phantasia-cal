@@ -56,12 +56,12 @@ Run `supabase/migrations/002_editor_tools.sql` once in the Supabase SQL Editor t
 ## Location autocomplete (Google Places, optional)
 With a key set, the event **Location** field suggests businesses and addresses as you type (biased to New Orleans). Without one, it's a normal text box. Event locations always link to Google Maps for directions (no key needed).
 
-1. Go to [console.cloud.google.com](https://console.cloud.google.com), create a project, and add a billing account (required by Google; ~10,000 searches a month are free).
+1. Go to [console.cloud.google.com](https://console.cloud.google.com), create a project, and add a billing account. New accounts start on Google Cloud's **90-day Free Trial**; to keep suggestions working after it ends, upgrade the billing account to paid. Maps then includes 10,000 free autocomplete requests every month (about 5 are used per event added).
 2. **APIs & Services → Library:** enable **Maps JavaScript API** and **Places API (New)**.
 3. **APIs & Services → Credentials → Create credentials → API key.** Edit the key:
    - *Application restrictions:* **Websites**, add `https://theycallmejeff.github.io/*` and `http://localhost:5173/*`
    - *API restrictions:* restrict to **Maps JavaScript API** and **Places API (New)**
-4. **Cap usage so it can't bill you:** *APIs & Services → Places API (New) → Quotas*, set the autocomplete requests per day limit to about **300**. Optionally add a $1 budget alert under *Billing → Budgets & alerts*.
+4. **Watch spending:** add a $1 budget alert under *Billing → Budgets & alerts* (it emails you; it does not stop charges). Places API (New) only has per-minute rate limits, not a daily cap, and Free Trial accounts can't change quotas. Leave the Maps JavaScript API quotas at their defaults; the site never draws a map.
 5. Add the key as the repository secret `VITE_GOOGLE_MAPS_API_KEY`, then re-run the deploy workflow.
 
 ## Local development
